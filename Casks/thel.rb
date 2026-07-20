@@ -1,8 +1,8 @@
 cask "thel" do
-  version "0.1.0-beta"
-  sha256 "4e401d75f36ffeb7726a689d293c0ca306ff4df386be98539f46dd6cb5a27b92"
+  version "0.3.0"
+  sha256 "c4631c49c2731b37743296783a92b7ce04e3dafc19bbf3901f1a53fcd1148592"
 
-  url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-x86_64.tar.gz"
+  url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-x86_64.tar.xz"
   name "thel"
   desc "Terminal app built for AI coding agents and long-running sessions"
   homepage "https://github.com/joaquimrocha/thel"
