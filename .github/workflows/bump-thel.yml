@@ -1,0 +1,57 @@
+name: bump-thel
+
+# Bump Casks/thel.rb to the latest thel release: version, sha256, and the
+# tarball extension. Run it manually after publishing a release; it opens a
+# PR when there's something to bump.
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@c915c33a16f01166c17c4e35fe1d4085a2d71adb # v4
+
+      - name: Bump the cask to the latest thel release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -eu
+          repo=joaquimrocha/thel
+          # releases/latest ignores prereleases, so fall back to the newest
+          # non-draft release if every release is flagged prerelease.
+          tag=$(gh api "repos/$repo/releases/latest" --jq .tag_name 2>/dev/null \
+            || gh api "repos/$repo/releases" --jq '[.[] | select(.draft | not)][0].tag_name')
+          [ -n "$tag" ] || { echo "no published release found" >&2; exit 1; }
+          version=${tag#v}
+
+          current=$(sed -n 's/^  version "\(.*\)"/\1/p' Casks/thel.rb)
+          [ "$version" != "$current" ] || { echo "already at $version"; exit 0; }
+
+          asset=$(gh api "repos/$repo/releases/tags/$tag" \
+            --jq '.assets[].name' | grep -E '^thel-.*linux-x86_64\.tar\.(gz|xz)$' | head -1)
+          [ -n "$asset" ] || { echo "release $tag has no linux tarball yet" >&2; exit 1; }
+          ext=${asset##*.tar.}
+          sha=$(curl -fsSL "https://github.com/$repo/releases/download/$tag/$asset" | sha256sum | cut -d' ' -f1)
+
+          sed -i \
+            -e "s/^  version \".*\"/  version \"$version\"/" \
+            -e "s/^  sha256 \".*\"/  sha256 \"$sha\"/" \
+            -e "s/linux-x86_64\.tar\.[a-z]*\"/linux-x86_64.tar.$ext\"/" \
+            Casks/thel.rb
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          branch="bump-thel-$version"
+          git checkout -b "$branch"
+          git commit -am "thel $version"
+          # Force-push so a re-run of the workflow refreshes the same PR branch.
+          git push -fu origin "$branch"
+          if [ "$(gh pr list --head "$branch" --json number --jq length)" = 0 ]; then
+            gh pr create --base main --head "$branch" --title "thel $version" \
+              --body "Automated cask bump to [$tag](https://github.com/$repo/releases/tag/$tag)."
+          fi
