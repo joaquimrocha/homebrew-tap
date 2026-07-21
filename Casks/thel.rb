@@ -1,6 +1,6 @@
 cask "thel" do
-  version "0.3.0"
-  sha256 "c4631c49c2731b37743296783a92b7ce04e3dafc19bbf3901f1a53fcd1148592"
+  version "0.3.1"
+  sha256 "c875d5d4a319e4897cae788934ba67685ac76265f733595ac3c49d1e7883a0b9"
 
   url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-x86_64.tar.xz"
   name "thel"
