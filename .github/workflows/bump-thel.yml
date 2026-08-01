@@ -1,8 +1,9 @@
 name: bump-thel
 
-# Bump Casks/thel.rb to the latest thel release: version, sha256, and the
-# tarball extension. Run it manually after publishing a release; it opens a
-# PR when there's something to bump.
+# Bump Casks/thel.rb to the latest thel release. The cask carries a per-platform
+# version + sha256 (an unsigned macOS .dmg and a Linux tarball), so this updates
+# whichever of the two the latest release ships. Run it manually after
+# publishing a release; it opens a PR when there's something to bump.
 on:
   workflow_dispatch:
 
@@ -28,21 +29,37 @@ jobs:
             || gh api "repos/$repo/releases" --jq '[.[] | select(.draft | not)][0].tag_name')
           [ -n "$tag" ] || { echo "no published release found" >&2; exit 1; }
           version=${tag#v}
+          names=$(gh api "repos/$repo/releases/tags/$tag" --jq '.assets[].name')
 
-          current=$(sed -n 's/^  version "\(.*\)"/\1/p' Casks/thel.rb)
-          [ "$version" != "$current" ] || { echo "already at $version"; exit 0; }
+          dl_sha() {
+            curl -fsSL "https://github.com/$repo/releases/download/$tag/$1" | sha256sum | cut -d' ' -f1
+          }
 
-          asset=$(gh api "repos/$repo/releases/tags/$tag" \
-            --jq '.assets[].name' | grep -E '^thel-.*linux-x86_64\.tar\.(gz|xz)$' | head -1)
-          [ -n "$asset" ] || { echo "release $tag has no linux tarball yet" >&2; exit 1; }
-          ext=${asset##*.tar.}
-          sha=$(curl -fsSL "https://github.com/$repo/releases/download/$tag/$asset" | sha256sum | cut -d' ' -f1)
+          # Linux tarball -> the on_linux block (version, sha256, tarball ext).
+          linux=$(printf '%s\n' "$names" | grep -E '^thel-.*linux-x86_64\.tar\.(gz|xz)$' | head -1 || true)
+          if [ -n "$linux" ]; then
+            ext=${linux##*.tar.}
+            sha=$(dl_sha "$linux")
+            sed -i \
+              -e "/on_linux do/,/^  end/ s/^\( *version \).*/\1\"$version\"/" \
+              -e "/on_linux do/,/^  end/ s/^\( *sha256 \).*/\1\"$sha\"/" \
+              -e "/on_linux do/,/^  end/ s/linux-x86_64\.tar\.[a-z]*\"/linux-x86_64.tar.$ext\"/" \
+              Casks/thel.rb
+          fi
 
-          sed -i \
-            -e "s/^  version \".*\"/  version \"$version\"/" \
-            -e "s/^  sha256 \".*\"/  sha256 \"$sha\"/" \
-            -e "s/linux-x86_64\.tar\.[a-z]*\"/linux-x86_64.tar.$ext\"/" \
-            Casks/thel.rb
+          # Apple-silicon .dmg -> the on_macos block (version, sha256).
+          mac=$(printf '%s\n' "$names" | grep -E '^thel_.*_aarch64\.dmg$' | head -1 || true)
+          if [ -n "$mac" ]; then
+            sha=$(dl_sha "$mac")
+            sed -i \
+              -e "/on_macos do/,/^  end/ s/^\( *version \).*/\1\"$version\"/" \
+              -e "/on_macos do/,/^  end/ s/^\( *sha256 \).*/\1\"$sha\"/" \
+              Casks/thel.rb
+          fi
+
+          [ -n "$linux$mac" ] || { echo "release $tag has no linux tarball or macOS dmg yet" >&2; exit 1; }
+
+          git diff --quiet Casks/thel.rb && { echo "cask already up to date for $tag"; exit 0; }
 
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
