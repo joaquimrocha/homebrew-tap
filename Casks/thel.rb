@@ -4,8 +4,8 @@ cask "thel" do
   # only one of the two leaves the other pinned to the last version it shipped.
   # bump-thel updates whichever the latest release carries.
   on_macos do
-    version "0.4.0"
-    sha256 "2574851d0d40c2378bf09290822c089350a7fb70ee6a059fd68a745b267f86a7"
+    version "0.5.0"
+    sha256 "329e9e55d567f744becc068f43d335e5ffc52ff9aa1f435c092779291e165954"
 
     url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel_#{version}_aarch64.dmg"
 
@@ -26,8 +26,8 @@ cask "thel" do
   end
 
   on_linux do
-    version "0.4.0"
-    sha256 "406c5c4c34522f394969aae850c84607e6e793893e01127d0bee1ce0a92fba7e"
+    version "0.5.0"
+    sha256 "13d511e53249fc79765677c6ff935bb2e0d419c5a062df9cfd5a1b5a13511d92"
 
     url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-x86_64.tar.xz"
 
