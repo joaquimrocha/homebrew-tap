@@ -1,8 +1,8 @@
 name: bump-thel
 
 # Bump Casks/thel.rb to the latest thel release. The cask carries a per-platform
-# version + sha256 (an unsigned macOS .dmg and a Linux tarball), so this updates
-# whichever of the two the latest release ships. Run it manually after
+# version + sha256 (an unsigned macOS .dmg and a Linux tarball per arch), so
+# this updates whichever of them the latest release ships. Run it manually after
 # publishing a release; it opens a PR when there's something to bump.
 on:
   workflow_dispatch:
@@ -35,15 +35,31 @@ jobs:
             curl -fsSL "https://github.com/$repo/releases/download/$tag/$1" | sha256sum | cut -d' ' -f1
           }
 
-          # Linux tarball -> the on_linux block (version, sha256, tarball ext).
-          linux=$(printf '%s\n' "$names" | grep -E '^thel-.*linux-x86_64\.tar\.(gz|xz)$' | head -1 || true)
-          if [ -n "$linux" ]; then
-            ext=${linux##*.tar.}
-            sha=$(dl_sha "$linux")
+          # Linux tarballs -> the on_linux block (version, per-arch sha256,
+          # tarball ext). Both arches come from the same release, so a release
+          # missing one of them leaves that checksum stale; the version bump
+          # still happens if either is present.
+          linux_bump() {
+            ext=${1##*.tar.}
             sed -i \
               -e "/on_linux do/,/^  end/ s/^\( *version \).*/\1\"$version\"/" \
-              -e "/on_linux do/,/^  end/ s/^\( *sha256 \).*/\1\"$sha\"/" \
-              -e "/on_linux do/,/^  end/ s/linux-x86_64\.tar\.[a-z]*\"/linux-x86_64.tar.$ext\"/" \
+              -e "/on_linux do/,/^  end/ s/linux-#{arch}\.tar\.[a-z]*\"/linux-#{arch}.tar.$ext\"/" \
+              Casks/thel.rb
+          }
+          linux=$(printf '%s\n' "$names" | grep -E '^thel-.*linux-x86_64\.tar\.(gz|xz)$' | head -1 || true)
+          if [ -n "$linux" ]; then
+            linux_bump "$linux"
+            sha=$(dl_sha "$linux")
+            sed -i "/on_linux do/,/^  end/ s/^\( *intel: \).*/\1\"$sha\"/" Casks/thel.rb
+          fi
+          linux_arm=$(printf '%s\n' "$names" | grep -E '^thel-.*linux-aarch64\.tar\.(gz|xz)$' | head -1 || true)
+          if [ -n "$linux_arm" ]; then
+            linux_bump "$linux_arm"
+            sha=$(dl_sha "$linux_arm")
+            # Also drop the placeholder note above the arm checksum, if still there.
+            sed -i \
+              -e "/on_linux do/,/^  end/ s/^\( *sha256 arm: *\).*/\1\"$sha\",/" \
+              -e "/No release ships an aarch64 tarball yet/,+1d" \
               Casks/thel.rb
           fi
 
@@ -57,7 +73,7 @@ jobs:
               Casks/thel.rb
           fi
 
-          [ -n "$linux$mac" ] || { echo "release $tag has no linux tarball or macOS dmg yet" >&2; exit 1; }
+          [ -n "$linux$linux_arm$mac" ] || { echo "release $tag has no linux tarball or macOS dmg yet" >&2; exit 1; }
 
           git diff --quiet Casks/thel.rb && { echo "cask already up to date for $tag"; exit 0; }
 

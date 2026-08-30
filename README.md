@@ -26,8 +26,8 @@ need to do this the first time. (`brew` also prints this reminder on install.)
 
 ### Linux
 
-Installs the prebuilt binary, an app menu entry, and the icon from the GitHub
-release. Needs the system WebKitGTK and GTK 3 libraries:
+Installs the prebuilt binary (x86_64 or aarch64), an app menu entry, and the
+icon from the GitHub release. Needs the system WebKitGTK and GTK 3 libraries:
 
 - Debian/Ubuntu: `sudo apt install libwebkit2gtk-4.1-0 libgtk-3-0`
 - Fedora: `sudo dnf install webkit2gtk4.1 gtk3`
