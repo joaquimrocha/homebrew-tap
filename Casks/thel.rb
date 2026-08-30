@@ -6,8 +6,8 @@ cask "thel" do
   arch arm: "aarch64", intel: "x86_64"
 
   on_macos do
-    version "0.5.1"
-    sha256 "a44b16e96293cba68ad8fbaf1b46612bb4ccc17c0768614c7ed0c55e556cef11"
+    version "0.6.0"
+    sha256 "ce281d42256d32b21f79d5f23212a20d50606a6a082ad7869de4a076bb04425a"
 
     url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel_#{version}_aarch64.dmg"
 
@@ -28,11 +28,9 @@ cask "thel" do
   end
 
   on_linux do
-    version "0.5.1"
-    # No release ships an aarch64 tarball yet; bump-thel fills the arm checksum
-    # from the first one that does.
-    sha256 arm:   "0000000000000000000000000000000000000000000000000000000000000000",
-           intel: "ac27791d598ec7a80ccdda1c235a33c45f5243b9a0f70cf0a2beef887e119cd1"
+    version "0.6.0"
+    sha256 arm:   "cbfbbc3c765a9e4376af0fc2754e7597c06e1e9b2d7416cf62584b68f584ed9b",
+           intel: "58f87424ffebcb9fd7bc38d5f71dfa4531515f7ba62be198f23d1e2f29dd13ef"
 
     url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-#{arch}.tar.xz"
 
