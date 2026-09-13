@@ -3,7 +3,6 @@ cask "thel" do
   # each platform carries its own version and checksum: a release that publishes
   # only one of the two leaves the other pinned to the last version it shipped.
   # bump-thel updates whichever the latest release carries.
-  arch arm: "aarch64", intel: "x86_64"
 
   on_macos do
     version "0.6.0"
@@ -29,10 +28,9 @@ cask "thel" do
 
   on_linux do
     version "0.6.0"
-    sha256 arm:   "cbfbbc3c765a9e4376af0fc2754e7597c06e1e9b2d7416cf62584b68f584ed9b",
-           intel: "58f87424ffebcb9fd7bc38d5f71dfa4531515f7ba62be198f23d1e2f29dd13ef"
+    sha256 "58f87424ffebcb9fd7bc38d5f71dfa4531515f7ba62be198f23d1e2f29dd13ef"
 
-    url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-#{arch}.tar.xz"
+    url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-x86_64.tar.xz"
 
     binary "thel"
     artifact "thel.desktop",
