@@ -27,14 +27,12 @@ cask "thel" do
   end
 
   on_linux do
-    on_arm64 do
-      version "0.6.0"
+    version "0.6.0"
+
+    if Hardware::CPU.arm?
       sha256 "cbfbbc3c765a9e4376af0fc2754e7597c06e1e9b2d7416cf62584b68f584ed9b"
       url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-aarch64.tar.xz"
-    end
-
-    on_intel do
-      version "0.6.0"
+    else
       sha256 "58f87424ffebcb9fd7bc38d5f71dfa4531515f7ba62be198f23d1e2f29dd13ef"
       url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-x86_64.tar.xz"
     end
