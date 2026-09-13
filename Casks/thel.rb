@@ -2,6 +2,7 @@ cask "thel" do
   # macOS and Linux ship separate artifacts (an unsigned .dmg vs a tarball), so
   # each platform carries its own version and checksum: a release that publishes
   # only one of the two leaves the other pinned to the last version it shipped.
+  # Linux ships x86_64 and aarch64 tarballs under one version.
   # bump-thel updates whichever the latest release carries.
 
   on_macos do
@@ -27,9 +28,12 @@ cask "thel" do
   end
 
   on_linux do
+    arch arm: "aarch64", intel: "x86_64"
+
     version "0.7.0"
-    sha256 "0a4cfc6e6af7c7c5239e4d33bde667462b4719df3094c831d9b5a9b519420723"
-    url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-x86_64.tar.xz"
+    sha256 arm64_linux:  "66c1bc46cfa2d22d29fda6f314f67bb1c88fa646886997c32de26c109bf6c303",
+           x86_64_linux: "0a4cfc6e6af7c7c5239e4d33bde667462b4719df3094c831d9b5a9b519420723"
+    url "https://github.com/joaquimrocha/thel/releases/download/v#{version}/thel-v#{version}-linux-#{arch}.tar.xz"
 
     binary "thel"
     artifact "thel.desktop",
